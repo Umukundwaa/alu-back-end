@@ -12,31 +12,23 @@ if __name__ == "__main__":
 
     employee_Id = int(sys.argv[1])
 
-    # URLs
-    todo_url = "https://jsonplaceholder.typicode.com/todos"
-    # Corrected: fetch the user by ID to get exact name
-    user_data_url = f"https://jsonplaceholder.typicode.com/users/{employee_Id}"
-
-    # Get user data
-    user_response = requests.get(user_data_url)
+    # Get employee data
+    user_url = f"https://jsonplaceholder.typicode.com/users/{employee_Id}"
+    user_response = requests.get(user_url)
+    if user_response.status_code != 200 or not user_response.json():
+        print("Employee not found")
+        sys.exit(1)
     employee_name = user_response.json().get("name")
 
-    # Get all todos
+    # Get employee's todos
+    todo_url = f"https://jsonplaceholder.typicode.com/users/{employee_Id}/todos"
     todo_response = requests.get(todo_url)
     todos = todo_response.json()
 
-    # Filter completed tasks for this employee
-    done = []
-    total = 0
-    completed = 0
-    for todo in todos:
-        if todo.get("userId") == employee_Id:
-            total += 1
-            if todo.get("completed"):
-                completed += 1
-                done.append(todo.get("title"))
+    total = len(todos)
+    done_tasks = [t.get("title") for t in todos if t.get("completed")]
 
-    # Display the progress information
-    print(f"Employee {employee_name} is done with tasks({completed}/{total}):")
-    for task_title in done:
+    # Print progress
+    print(f"Employee {employee_name} is done with tasks({len(done_tasks)}/{total}):")
+    for task_title in done_tasks:
         print(f"\t {task_title}")
