@@ -1,59 +1,35 @@
 #!/usr/bin/python3
 """
-Script that fetches and displays an employee's TODO list progress
-from JSONPlaceholder API
+getting data using api
 """
 import requests
 import sys
 
-
-
-def get_employee_todo_progress(employee_id):
-    """
-    Fetches employee TODO list progress and displays it
-
-    Args:
-        employee_id (int): The ID of the employee
-    """
-    base_url = "https://jsonplaceholder.typicode.com"
-
-    # Fetch employee data
-    user_url = f"{base_url}/users/{employee_id}"
-    user_response = requests.get(user_url)
-    user_data = user_response.json()
-    employee_name = user_data.get('name')
-
-    # Fetch todos for the employee
-    todos_url = f"{base_url}/todos?userId={employee_id}"
-    todos_response = requests.get(todos_url)
-    todos = todos_response.json()
-
-    # Calculate progress
-    total_tasks = len(todos)
-    completed_tasks = [todo for todo in todos if todo.get('completed')]
-    number_of_done_tasks = len(completed_tasks)
-
-    # Display results
-    print("Employee {} is done with tasks({}/{}):".format(
-        employee_name, number_of_done_tasks, total_tasks))
-
-    # Display completed task titles
-    for task in todos:
-        if task.get('completed'):
-            print("\t {}".format(task.get('title')))
-
-
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python3 0-gather_data_from_an_API.py <employee_id>")
-        sys.exit(1)
+    employee_Id = int(sys.argv[1])
 
-    try:
-        employee_id = int(sys.argv[1])
-        get_employee_todo_progress(employee_id)
-    except ValueError:
-        print("Error: Employee ID must be an integer")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+    todo_url = "https://jsonplaceholder.typicode.com/todos"
+    user_data_url = "https://jsonplaceholder.typicode.com/users"
+
+    user_response = requests.get(user_data_url)
+    todo_response = requests.get(todo_url)
+    # if todo_response.status_code & user_response.status_code == 200:
+    todos = todo_response.json()
+    users = user_response.json()
+    for user in users:
+        if user.get("id") == employee_Id:
+            employee_name = user.get("name")
+    # filter completed tasks
+    done = []
+    total = 0
+    completed = 0
+    for todo in todos:
+        if todo.get("userId") == employee_Id:
+            total += 1
+            if todo.get("completed"):
+                completed += 1
+                done.append(todo.get("title"))
+    # Display the progress information
+    print(f"Employee {employee_name} is done with tasks({completed}/{total}):")
+    for _ in done:
+        print(f"\t {_}")
