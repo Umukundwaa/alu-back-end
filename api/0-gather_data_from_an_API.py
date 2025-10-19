@@ -1,39 +1,35 @@
 #!/usr/bin/python3
 """
-Script that uses a REST API for a given employee ID
-to return information about their TODO list progress.
+getting data using api
 """
-
 import requests
 import sys
 
-
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: ./0-gather_data_from_an_API.py <employee_id>")
-        sys.exit(1)
+    employee_Id = int(sys.argv[1])
 
-    employee_id = sys.argv[1]
+    todo_url = "https://jsonplaceholder.typicode.com/todos"
+    user_data_url = "https://jsonplaceholder.typicode.com/users"
 
-    # Fetch user and todos
-    user = requests.get(
-        f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-    ).json()
-    todos = requests.get(
-        f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}"
-    ).json()
-
-    # Extract name and tasks
-    employee_name = user.get("name")
-    done_tasks = [t for t in todos if t.get("completed") is True]
-    total_tasks = len(todos)
-    done_count = len(done_tasks)
-
-    # Print exactly as required
-    print(
-        f"Employee {employee_name} is done with tasks"
-        f"({done_count}/{total_tasks}):"
-    )
-
-    for task in done_tasks:
-        print(f"\t {task.get('title')}")
+    user_response = requests.get(user_data_url)
+    todo_response = requests.get(todo_url)
+    # if todo_response.status_code & user_response.status_code == 200:
+    todos = todo_response.json()
+    users = user_response.json()
+    for user in users:
+        if user.get("id") == employee_Id:
+            employee_name = user.get("name")
+    # filter completed tasks
+    done = []
+    total = 0
+    completed = 0
+    for todo in todos:
+        if todo.get("userId") == employee_Id:
+            total += 1
+            if todo.get("completed"):
+                completed += 1
+                done.append(todo.get("title"))
+    # Display the progress information
+    print(f"Employee {employee_name} is done with tasks({completed}/{total}):")
+    for _ in done:
+        print(f"\t {_}")
