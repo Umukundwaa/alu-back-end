@@ -1,25 +1,29 @@
 #!/usr/bin/python3
-''' Test request to parse API's
-'''
-import csv
+
+'''JSON export'''
+
 import json
 import requests
 import sys
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1].isdigit():
-        api_endpoint = "https://jsonplaceholder.typicode.com"
-        user_id = sys.argv[1]
-        user_data = requests.get(api_endpoint + "/users/" + user_id).json()
-        username = user_data.get('username')
-        todo_data = \
-            requests.get(api_endpoint + "/users/" + user_id + "/todos").\
-            json()
-        with open("{}.json".format(user_id), 'w') as json_file:
-            tasks = []
-            for task in todo_data:
-                tasks.append({'task': task['title'],
-                              'completed': task['completed'],
-                              'username': username})
-            data = {"{}".format(user_id): tasks}
-            json.dump(data, json_file)
+if __name__ == '__main__':
+    user_id = sys.argv[1]
+    user_url = "https://jsonplaceholder.typicode.com/users/{}" \
+        .format(user_id)
+    todos_url = "https://jsonplaceholder.typicode.com/users/{}/todos/" \
+        .format(user_id)
+
+    user_info = requests.request('GET', user_url).json()
+    todos_info = requests.request('GET', todos_url).json()
+
+    employee_name = user_info["name"]
+    task_completed = list(filter(lambda obj:
+                                 (obj["completed"] is True), todos_info))
+    number_of_done_tasks = len(task_completed)
+    total_number_of_tasks = len(todos_info)
+
+    with open('{}.json'.format(user_id), 'w') as jsonfile:
+        json.dump({user_id: [{"task": task["title"],
+                              "completed": task["completed"],
+                              "username": user_info["username"]}
+                             for task in todos_info]}, jsonfile)

@@ -1,35 +1,29 @@
 #!/usr/bin/python3
-"""
-getting data using api
-"""
+"""Module"""
+
 import requests
 import sys
 
-if __name__ == "__main__":
-    employee_Id = int(sys.argv[1])
 
-    todo_url = "https://jsonplaceholder.typicode.com/todos"
-    user_data_url = "https://jsonplaceholder.typicode.com/users"
+"""Module"""
 
-    user_response = requests.get(user_data_url)
-    todo_response = requests.get(todo_url)
-    # if todo_response.status_code & user_response.status_code == 200:
-    todos = todo_response.json()
-    users = user_response.json()
-    for user in users:
-        if user.get("id") == employee_Id:
-            employee_name = user.get("name")
-    # filter completed tasks
-    done = []
-    total = 0
-    completed = 0
-    for todo in todos:
-        if todo.get("userId") == employee_Id:
-            total += 1
-            if todo.get("completed"):
-                completed += 1
-                done.append(todo.get("title"))
-    # Display the progress information
-    print(f"Employee {employee_name} is done with tasks({completed}/{total}):")
-    for _ in done:
-        print(f"\t {_}")
+if __name__ == '__main__':
+    user_id = sys.argv[1]
+    user_url = "https://jsonplaceholder.typicode.com/users/{}" \
+        .format(user_id)
+    todos_url = "https://jsonplaceholder.typicode.com/users/{}/todos/" \
+        .format(user_id)
+
+    user_info = requests.request('GET', user_url).json()
+    todos_info = requests.request('GET', todos_url).json()
+
+    employee_name = user_info["name"]
+    task_completed = list(filter(lambda obj:
+                                 (obj["completed"] is True), todos_info))
+    number_of_done_tasks = len(task_completed)
+    total_number_of_tasks = len(todos_info)
+
+    print("Employee {} is done with tasks({}/{}):".
+          format(employee_name, number_of_done_tasks, total_number_of_tasks))
+
+    [print("\t " + task["title"]) for task in task_completed]
